@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taolog
+  template:
+    metadata:
+      labels:
+        app: taolog
+    spec:
+      containers:
+        - name: taolog
+          image: kyf26/test_mount_volume:v1

@@ -1,0 +1,2 @@
+Set request để Scheduler chọn node để chạy Pod
+1 Pod ko thể dùng quá lượng CPU,RAM đã limits

@@ -1,0 +1,9 @@
+Muốn làm 1 web-app có ingress, External-dns (route53), RDS. Thứ tự:
+Tạo cluster, kết hợp iam-oidc-provider, tạo private-nodegroup
+Tạo RDS, test như 6_RDS
+Các bước sau nhớ chỉnh sửa thông số file.yaml
+    Cài AWS LoadBalancer Controller: như 3,4,5 (8_ALB_Ingress/1_Install_ALB_Controller), sau đó deploy ingress_class.yaml
+    Cài External-dns như ALB_Ingress_External.txt
+    Test bằng nhanh bằng External_DNS_for_Service_LoadBalancer
+
+Fargate thì request phải bằng limits để ko error failed

@@ -1,0 +1,46 @@
+Fluentd sẽ gửi log của container đến AWS Cloudwatch
+Cloudwatch-agent sẽ gửi metrics information của app,cluster,nodes (CPU,Mem,Disk).
+Các loại feartures:
+    Container Insights:
+        Container Map: sẽ thấy bản đồ: eks->namespace->...
+        Container Resources: sẽ thấy CPU,Mem của cluster,nodes,daemon,deployment,...
+        Performance Dashboards: Sẽ thấy biểu đồ: CPU,Mem,Network,... của từng loại: eks,nodes,deployment,namspaces,...
+        Container performances: CPU,Mem của các pods
+    Logs Groups
+    Log Insights    (thực hiện query logs trong Logs groups)
+    Alarms
+
+Triển khai:
+    Thêm Policy: "CloudWatchAgentServerPolicy" vào role của nodegroup. Ví dụ:
+        "arn:aws:iam::180789647333:role/eksctl-eksdemo1-nodegroup-eksdemo-NodeInstanceRole-1FVWZ2H3TMQ2M"
+    Deploy CloudWatch Agent and Fluentd như các DaemonSets
+        # Template
+        curl -s https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/<REPLACE_CLUSTER_NAME>/;s/{{region_name}}/<REPLACE-AWS_REGION>/" | kubectl apply -f -
+        # Replaced Cluster Name and Region
+        curl -s https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/eksdemo1/;s/{{region_name}}/us-east-1/" | kubectl apply -f -
+    Kiểm tra:
+        Xem daemonsets:
+            kubectl -n amazon-cloudwatch get daemonsets
+        Thử tạo 1 Nginx application:
+            kubectl apply -f kube-manifests
+        Tạo load (request) cho app:
+            kubectl run --generator=run-pod/v1 apache-bench -i --tty --rm --image=httpd -- ab -n 500000 -c 1000 http://sample-nginx-service.default.svc.cluster.local/
+        Vào AWS console:
+            Access CloudWatch Dashboard
+            CloudWatch Log Insights
+            Container Insights - Log Insights in depth
+        Thực hiện 1 vài query ở Container Insights:
+            Step 8 "https://github.com/stacksimplify/aws-eks-kubernetes-masterclass/tree/master/18-EKS-Monitoring-using-CloudWatch-Container-Insights"
+            Nhấn Save Dashboard để lưu các query và kết quả của nó trong logs Insights
+        Tạo Alarm:
+            Chọn Metrics
+            Tạo load (request) và xác nhận alarm
+            kubectl run --generator=run-pod/v1 apache-bench -i --tty --rm --image=httpd -- ab -n 500000 -c 1000 http://sample-nginx-service.default.svc.cluster.local/
+Clean up:
+    # Template
+    curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/cluster-name/;s/{{region_name}}/cluster-region/" | kubectl delete -f -
+    # Replace Cluster Name & Region Name
+    curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/eksdemo1/;s/{{region_name}}/us-east-1/" | kubectl delete -f -
+
+    # Delete Apps
+    kubectl delete -f  kube-manifests/

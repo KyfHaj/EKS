@@ -1,0 +1,8 @@
+Chỉnh sửa Service:
+    type: LoadBalancer  (Mặc định sẽ là )
+    Bỏ NodePort
+
+Apply như cũ:
+- kubectl apply -f=<name>
+
+Kiểm tra bằng cách truy cập DNS_name của LoadBalancer

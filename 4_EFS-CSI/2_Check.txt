@@ -1,0 +1,10 @@
+- Tạo 1 EC2 có mount với EFS trong console lúc cấu hình
+- hoặc nếu cài đặt:
+	Tạo 1 EC2 với aws-linux(cho nhanh). Cài:
+	 + sudo yum install -y amazon-efs-utils
+	Tạo path để mount:	
+	 + sudo mkdir /mnt/efs
+	Mount path vừa tạo với EFS. Nếu thấy log.txt là đúng!
+	 + sudo mount -t efs -o tls fs-086136caab03ebe8b:/ /mnt/efs
+	Kiểm tra dung lượng:
+	 - df -h

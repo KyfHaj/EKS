@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1-nginx-loadbalancer-service
+  labels:
+    app: app1-nginx
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: kyf1.haxuan.link
+spec:
+  type: LoadBalancer
+  selector:
+    app: app1-nginx
+  ports:
+    - port: 80
+      targetPort: 80
+
+   

@@ -1,0 +1,29 @@
+Liveness probe:
+- Kiểm tra để restart lại pod
+- Kiểm tra kết quả của app
+Readiness probe:
+- Kiểm tra ngừng để gửi traffic
+- Kiểm tra available của app
+- Với 1 LoadBalancer, khi pod Readiness checks kích hoạt signal thì LoadBalancer loại nó ra khỏi target của LoadBalancer
+Starup probe:
+- Kiểm tra app đã khởi động chưa?
+- Lúc này nó sẽ disable 2 cái kia
+- Nó chỉ được dùng khi start Pod
+
+Thêm vào containers:
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh       # Test thử từng lệnh với linux: /bin/sh -c nc -z localhost 8095
+                - -c
+                - nc -z localhost 8095
+            initialDelaySeconds: 60     # Thời gian livenessProbe được thiết lập sau khi pod được tạo ra
+            periodSeconds: 10           # tần suất check command trên, nếu quá thời gian mà vẫn ko zero-exit-code thì bật livenessProbe
+
+
+          readinessProbe:
+            httpGet:
+              path: /usermgmt/health-status
+              port: 8095
+            initialDelaySeconds: 60
+            periodSeconds: 10

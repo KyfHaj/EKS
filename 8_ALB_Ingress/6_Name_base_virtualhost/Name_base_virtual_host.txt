@@ -1,0 +1,8 @@
+Để nhiều host -> nhiều service
+external-dns.alpha.kubernetes.io/hostname:
+    default101.stacksimplify.com -> default-backend
+rules
+    host: app101.stacksimplify.com -> app1-nginx-nodeport-service
+    host: app201.stacksimplify.com -> app2-nginx-nodeport-service
+
+Có thể đặt 1 host ở trên, để path ở dưới

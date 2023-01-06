@@ -1,0 +1,2 @@
+Gỡ AWS Load Balancer Controller dùng HELM3:
+helm uninstall aws-load-balancer-controller -n kube-system

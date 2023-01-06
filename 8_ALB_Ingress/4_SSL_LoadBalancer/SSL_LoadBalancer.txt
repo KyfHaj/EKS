@@ -1,0 +1,16 @@
+Dùng Route53 đăng ký Domain cho LoadBalancer
+Tạo SSL ở AWS Certificate Manager
+Update SSL cho LoadBalancer: http -> https
+
+1/ Đăng ký Domain name (Mua tại Route53)
+2/ Tạo Certification cho Domain name (Tại AWS Certificate Manager (ACM))
+    *.haxuan.link
+    Sẽ tạo ra: arn:aws:acm:ap-northeast-1:905159657258:certificate/f7429a0a-aac3-446f-b92b-763d53141729
+3/ Chỉnh sửa yaml.file:
+    annotations:
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'      # Khai báo cổng listen cho Ingress
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:180789647333:certificate/d86de939-8ffd-410f-adce-0ce1f5be6e0d
+                                                <ARN> của Certificate
+    alb.ingress.kubernetes.io/ssl-redirect: '443'       # Redirect mọi cổng -> 443 (https)
+4/ Tạo Record, để tạo link cho ALB:
+    ky [.haxuan.link]          A-Routes ...        Route traffic to -> DNS name của LoadBalancer

@@ -1,0 +1,6 @@
+*EFS qua IAM role -> EFS-CSI-K8s-ServiceAccount này sẽ được cấp cho EFS-CSI Controller Deployment. Nghĩa là EFS-CSI Controller Deployment sẽ có quyền(thông qua IAM role) đối với AWS services(trong IAM)
+*EFS-CSI Controller Deployment (là 1 deployment) sẽ sử dụng EFS-CSI-K8s-ServiceAccount để mount đến 1 EFS có sẵn(ko có khả năng tạo ra EFS, khác với EBS)
+
+*EFS-CSI hỗ trợ static vs dynamic provison (nhưng vẫn phải có 1 EFS có sẵn)
+- Static Provisioning: mount như 1 PV, use EFS-id
+- Dynamic Provisioning: Dùng PVC, trong PVC sẽ request EFS đến 1 accesspoint

@@ -1,0 +1,14 @@
+lsblk
+Xem phần mount để thấy:
+/var/lib/kubelet/pods/3c0e435b-9452-499d-8adb-24796dad42f4/volumes/kubernetes.io~csi/pvc-f0a6bc47-84a2-4fc6-99e6-c56a2a3e02ba/mount
+Đó là phần mount với (/var/lib/mysql)container
+Như vậy chỉ cần sao chép phần này rồi bỏ vào /var/lib/mysql của container hoặc 1 server-mysql ta sẽ có được 1 bản sao y chang
+
+-------------------------------
+df -h
+lsblk
+file -s /dev/xvdf
+mkfs -t xfs /dev/xvdf
+file -s /dev/xvdf
+mkdir aa
+mount /dev/xvdf ./aa

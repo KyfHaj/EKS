@@ -1,0 +1,1 @@
+Thiết lập Readiness probe và liveness probe ?? thực tế giải quyết

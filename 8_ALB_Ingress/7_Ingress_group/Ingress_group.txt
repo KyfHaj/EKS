@@ -1,0 +1,9 @@
+Ingress group giúp dễ dàng chia tách, xóa hoặc chỉnh sửa Ingress-resource -> 1 single ALB
+Thêm vào 2 dòng này và tách biệt các rule, default-backend:
+    alb.ingress.kubernetes.io/group.name: myapps.web
+    alb.ingress.kubernetes.io/group.order: '10'
+
+Mỗi annotation khai báo trong từng ingress group (file.yaml) sẽ áp dụng cho từng path trong đó (rules)
+với chỉ số alb.ingress.kubernetes.io/group.order, càng nhỏ sẽ được ưu tiên trước.
+Ko thể có sự trùng lặp chỉ số này. Như vậy, với nhiều ingress-groups -> 1 ingress-controler thì:
+    Sẽ đi qua các ingress-groups có order từ nhỏ đến lớn

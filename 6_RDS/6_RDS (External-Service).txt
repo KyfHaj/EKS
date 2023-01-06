@@ -1,0 +1,51 @@
+* ExternalName Service: endpoint ngoài cụm được khai báo trong cụm như 1 service(external):
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: mysql
+    spec:
+      type: ExternalName
+      externalName: <endpoint_RDS>
+* Thay đổi thêm (so với file cũ là "root"): DB_USERNAME: "dbadmin" trong file user_deployment
+(Cái này là do mình khai báo trong RDS phần "Master username")
+
+Phải đảm bảo:
+    - nằm cùng VPC (cho dễ và như vậy dữ liệu ko truyền qua Internet)
+    - nằm trong private-subnet của EKS
+    - security-group của RDS được phép nhận traffic từ Pod(inboundsWorknode)
+
+*Khi tạo ra 1 eks, nó sẽ tạo ra 1 loại private-subnet + public-subnet
+*Public thường cho deployment-frontend, private thường cho deployment-backend, database
+
+Hands on:
+1/ Tạo Secutity group cho RDS:
+    - 3306 from anywhere (0.0.0.0/0)
+2/ Tạo DB Subnet Group trong RDS
+    - Chọn AZ cho nó để khi kích hoạt multi-AZ, Database sẽ có 1 cái ở mỗi az
+    - Chọn subnet là private-subnet của EKS
+3/ Thông số cho DB:
+    - DB instance identifier: kyf26
+    - Initial database name: usermgmtdb
+    - Master Username: dbadmin
+    - Master Password: dbpassword11
+    - Confirm Password: dbpassword11
+4/ Sửa lại file.yaml: externalName
+    kubectl apply -f kube-manifests/01-MySQL-externalName-Service.yml
+5/ Kiểm tra kết nối
+    - kubectl run -it --rm --image=mysql:5.7.40 --restart=Never mysql-client -- mysql -h kyf26.cxbwluectybo.ap-northeast-1.rds.amazonaws.com -u dbadmin -pdbpassword11
+   Nếu hiện ra: "If you don't see a command prompt, try pressing enter" ko được thì kiểm tra thủ công"
+    - kubectl exec -it mysql-client --container mysql-client -- mysql -h kyf26.cxbwluectybo.ap-northeast-1.rds.amazonaws.com -u dbadmin -pdbpassword11
+6/ Tạo thủ công:
+    mysql> show schemas;
+    mysql> create database usermgmt;
+    mysql> show schemas;
+    mysql> exit
+7/ Thoát ra rồi:
+    - kubectl apply -f kube-manifests/  (all files)
+    - kubectl get pods -w
+
+8/ Muốn test connect phải mở security-goup cho Workernode
+kubectl run -it --rm --image=mysql:5.7.40 --restart=Never mysql-client -- mysql -h kyf26.cxbwluectybo.ap-northeast-1.rds.amazonaws.com -u dbadmin -pdbpassword11
+
+kubectl run -it --rm --image=mysql:5.7.40 --restart=Never mysql-client -- mysql -h usermgmtdb.cxbwluectybo.ap-northeast-1.rds.amazonaws.com -u dbadmin -pdbpassword11
+kubectl exec -it mysql-client --container mysql-client -- mysql -h usermgmtdb.cxbwluectybo.ap-northeast-1.rds.amazonaws.com -u dbadmin -pdbpassword11

@@ -1,0 +1,16 @@
+Gồm 4 bước:
+Trước khi thực hiện cần kiểm tra cài đặt và khởi tạo k8s cluster (2_1_):
+Xác nhận đã có bất kì IAM service-account nào chưa?
+- eksctl get iamserviceaccount --cluster=eksdemo1
+
+** Nếu xuất hiện lỗi khi kubectl...:
+"The connection to the server localhost:8080 was refused" thì điều đó có nghĩa là ko thể connect tới eks-cluster do .kube/config:
+- aws eks update-kubeconfig --region region-code --name my-cluster
+
+
+1/ Tạo IAM policy
+2/ Tạo service account và kết hợp IAM Policy
+3/ Cài AWS Load Balancer Controller dùng HELM3
+4/ Ingress Class là gì?
+
+

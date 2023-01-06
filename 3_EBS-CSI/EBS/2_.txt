@@ -1,0 +1,8 @@
+Tải lên hoặc dùng git clone:
+- scp -i japanese.pem -r /mnt/d/KYF/K8s_EKS/EKS/3_EBS-CSI/04-03-UserManagement-MicroService-with-MySQLDB/2_kube-manifests/ ubuntu@54.178.56.24: 
+Sau đó apply:
+- kubectl apply -f=2_kube-manifests
+
+
+- Để tiếp cận bằng browser, ta chỉnh sử sg cho phép
+TCP/port 31231: từ all anywhere eksctl-eksdemo1-nodegroup-eksdemo1-ng-public1-remoteAccess (cần sửa lại khi delete cụm) để cho phép connect từ bất cứ đâu qua port 31231

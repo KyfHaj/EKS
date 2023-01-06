@@ -1,0 +1,1 @@
+Liệu Update ECR có ảnh hưởng đến cài aws-controller ?? (lúc dùng helm để cài)

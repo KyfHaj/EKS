@@ -1,0 +1,32 @@
+Tạo chay:
+- kubectl create namespace dev1
+- kubectl create namespace dev2
+
+List Namespaces
+- kubectl get ns 
+
+Ko thể dùng chung 1 Node_port giữa 2 namespaces
+Chỉ mỗi cái 1 nếu ko chúng sẽ xung đột
+Lỗi xung đột sẽ là:
+	The Service "usermgmt-restapp-service" is invalid: spec.ports[0].nodePort: Invalid value: 31231: provided port is already allocated
+
+Deploy chay với file.yaml:
+- kubectl apply -f kube-manifests/ -n dev1
+- kubectl apply -f kube-manifests/ -n dev2
+
+- kubectl get all -n dev1	(service, deploy, replicaset, pod)
+- kubectl get all -n dev2
+
+- kubectl get pvc -n dev1
+- kubectl get pvc -n dev2
+
+pv, sc(storage class) không phải chỉ định namespaces nó cũng hiện ra:
+- kubectl get pv
+- kubectl get sc
+
+Xóa từng namespaces:
+- kubectl delete ns dev1
+- kubectl delete ns dev2
+Sẽ xóa service, deploy, replicaset, pod, pvc
+Phải xóa thêm storage class:
+- kubectl delte sc <name>

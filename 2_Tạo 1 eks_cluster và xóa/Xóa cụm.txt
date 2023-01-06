@@ -1,0 +1,4 @@
+- Xóa node
+eksctl delete nodegroup eksdemo1-ng-public1 --cluster eksdemo1
+- Xóa cụm
+eksctl delete cluster eksdemo1

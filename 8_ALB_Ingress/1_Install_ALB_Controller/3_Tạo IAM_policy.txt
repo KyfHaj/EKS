@@ -1,0 +1,13 @@
+Kiểm tra xem có sắn AWSLoadBalancerControllerIAMPolicy ở IAM hay chưa, nếu ko có thì:
+- Tải iam policy:
+curl -o iam_policy_latest.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+hoặc (chỉ định phiên bản 2.3.1):
+curl -o iam_policy_v2.3.1.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.3.1/docs/install/iam_policy.json
+
+- Tạo IAM policy (phải vào dir chứa iam_policy_latest.json vừa downlod):
+aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy_latest.json
+
+
+

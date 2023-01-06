@@ -1,0 +1,39 @@
+Thay vì phải tạo record, route -> ALB_DNS_name thủ công (tại Route53) (hostname)
+Ta có thể tự động add hostname thông qua External DNS:
+Bước 1:
+    Ko tải rồi cài đặt driver hoặc controller theo cách như EBS,EFS,ALB. Sẽ có file.yaml deploy
+    1/ Tạo IAM Policy (phải xem video)  - AllowExternalDNSUpdates
+    2/ Tạo iamserviceaccount có IAM policy
+eksctl create iamserviceaccount \
+    --name external-dns \
+    --namespace default \
+    --cluster eksdemo1 \
+    --attach-policy-arn arn:aws:iam::905159657258:policy/AllowExternalDNSUpdates \
+    --approve \
+    --override-existing-serviceaccounts
+
+       Kiểm tra service-account được tạo ra:
+        Xem trong Stack CloudFormation, sau đó:
+        kubectl get sa external-dns
+        kubectl describe sa external-dns   (Xem có IAM role ko?)
+        eksctl get iamserviceaccount --cluster eksdemo1
+    3/ Sửa 01-Deploy-ExternalDNS.yml
+        line 9: eks.amazonaws.com/role-arn: arn:aws:iam::180789647333:role/eksctl-eksdemo1-addon-iamserviceaccount-defa-Role1-JTO29BVZMA2N
+        line 61: k8s.gcr.io/external-dns/external-dns:v0.10.2 -> lastest version
+    4/  Deploy External DNS:
+            kubectl apply -f 01-Deploy-ExternalDNS.yml
+        Kiểm tra:
+            kubectl get all
+            kubectl get pod
+        Kiểm tra logs:
+            kubectl logs -f $(kubectl get po | egrep -o 'external-dns[A-Za-z0-9-]+')
+Bước 2:
+    Deploy Ingress sử dụng External-DNS trên:
+    Thêm vào annotations:
+        external-dns.alpha.kubernetes.io/hostname: kyf1.haxuan.link, kyf2.haxuan.link, kyf3.haxuan.link
+--------------------------------------------
+
+    Để kiểm tra nhanh External-DNS, test deploy service chọn type: Load Balancer thì thêm, loại này là ALB->service, ko phải Ingress như trên:
+        annotations:
+            external-dns.alpha.kubernetes.io/hostname: kyf123.stacksimplify.com
+

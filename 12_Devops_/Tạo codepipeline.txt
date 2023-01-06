@@ -1,0 +1,47 @@
+Tạo CODEPIPELINE
+    Go to Services -> CodePipeline -> Create Pipeline
+    Pipeline Settings
+        Pipeline Name: eks-devops-pipe
+        Service Role: New Service Role (leave to defaults)
+        Role Name: AWSCodePipelineServiceRole-ap-northeast-1-eks-devops-pipe
+        Rest all leave to defaults and click Next
+    Source
+        Source Provider: AWS CodeCommit
+        Repository Name: eks-devops-nginx
+        Branch Name: master
+        Change Detection Options: CloudWatch Events (leave to defaults)
+    Build
+        Build Provider: AWS CodeBuild
+        Region: Asia Pacific (Tokyo)
+        Project Name: Click on Create Project
+            Create Build Project
+            Project Configuration
+                Project Name: eks-devops-cb-for-pipe
+                Description: CodeBuild Project for EKS DevOps Pipeline
+            Environment
+                Environment Image: Managed Image
+                Operating System: Amazon Linux 2
+                Runtimes: Standard
+                Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+                Image Version: Always use the latest version for this runtime
+                Environment Type: Linux
+                Privileged: Enable
+                Role Name: Auto-populated   (codebuild-eks-devops-cv-for-pipe-service-role)
+                Additional Configurations
+                    All leave to defaults except Environment Variables
+                    Add Environment Variables
+                    REPOSITORY_URI = 905159657258.dkr.ecr.ap-northeast-1.amazonaws.com/aws-ecr-kubenginx
+                    EKS_KUBECTL_ROLE_ARN = arn:aws:iam::905159657258:role/EksCodeBuildKubectlRole
+                    EKS_CLUSTER_NAME = eksdemo1
+            Buildspec
+                leave to defaults
+            Logs
+                Group Name: eks-deveops-cb-pipe
+                Stream Name: eks-deveops-cb-pipe
+            Click on Continue to CodePipeline
+    We should see a message Successfully created eks-devops-cb-for-pipe in CodeBuild.
+    Click Next
+    Deploy
+    Click on Skip Deploy Stage
+    Review
+    Review and click on Create Pipeline

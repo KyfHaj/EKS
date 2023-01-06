@@ -1,0 +1,16 @@
+Trong 1 file Ingress.yaml, có 2 thành phần quan trọng:
+- annotations:: Setting cho Ingress-controller (AWS Load Balancer Controller)
+    alb.ingress.kubernetes.io/load-balancer-name: app1ingress       #Tên loadbalancer
+    alb.ingress.kubernetes.io/scheme: internet-facing               #Có connect->Internet: internet-facing, hoặc chỉ cho private: internal
+
+- spec:
+       + ingressClassName: my-aws-ingress-class (Nếu đã chỉ định my-aws-ingress-class là default thì ko ần dòng này )
+       + defaultBackend, (Là mặc định sẽ tới trang này nếu /path ko được khai báo)
+         rules
+
+Path types trong rules:
+- Prefixed (thường dùng), Exact, ImplementationSpecific
+"https://kubernetes.io/docs/concepts/services-networking/ingress/"
+
+Ingress-resources không thể xuyên qua các namespaces. Nhưng Ingress-Controller thì có thể
+Chỉ có thể dùng mỗi ingress-resources cho từng namespaces

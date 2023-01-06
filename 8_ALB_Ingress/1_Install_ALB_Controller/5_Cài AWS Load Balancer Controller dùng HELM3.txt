@@ -1,0 +1,38 @@
+** Hiểu aws-load-balancer-controller sử dụng iamserviceaccount -> aws service + clusterrole -> k8s(eks)
+Cài AWS Load Balancer Controller dùng HELM3:
+- Cài Helm (linux):
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh
+- Kiểm tra:
+helm version --short | cut -d + -f 1
+
+- Cài AWS Load Balancer Controller:
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=eksdemo1 \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=ap-northeast-1 \
+  --set vpcId=vpc-02f5b16554370d032
+
+  Đừng thêm vô dòng này
+  --set image.repository=905159657258.dkr.ecr.ap-northeast-1.amazonaws.com/amazon/aws-load-balancer-controller
+
+
+- Kiểm tra deployment, service, logs:
+kubectl -n kube-system get deployment
+kubectl -n kube-system get deployment aws-load-balancer-controller
+kubectl -n kube-system describe deployment aws-load-balancer-controller
+
+kubectl -n kube-system get svc
+kubectl -n kube-system get svc aws-load-balancer-webhook-service
+kubectl -n kube-system describe svc aws-load-balancer-webhook-service
+
+kubectl -n kube-system get svc aws-load-balancer-webhook-service -o yaml
+kubectl -n kube-system get deployment aws-load-balancer-controller -o yaml
+
+kubectl -n kube-system logs -f aws-load-balancer-controller-d6fb846d8-ks87h
+

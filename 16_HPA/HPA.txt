@@ -1,0 +1,42 @@
+HPA là tăng hoặc giảm số lượng POD dựa trên CPU metrics của Pod
+HPA cần Metrics server để scale. Việc scaling sẽ auto tính toán lượng pod sinh ra hoặc giảm đi do k8s đảm nhận
+Ví dụ:
+    Scale Metrics: CPU Ultilization
+    Target value - CPU=50%
+    Max Replica = 10
+    Min Replica = 1
+
+Thực hiện:
+    1/ Cài đặt Metrics server   (hiểu 1 cách tổng quan là nó sẽ được quyền như 1 service-account, lấy được CPU của pod)
+        Kiểm tra đã cài đặt chưa:
+            kubectl -n kube-system get deployment/metrics-server
+        Cài đặt:
+            kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.3.6/components.yaml
+        Kiểm tra lại:
+            kubectl get deployment metrics-server -n kube-system
+
+    2/ Deploy 1 app như bình thường (phải nên chỉ định request+limit cho pod, nếu ko sẽ dùng mặc định):
+            kubectl apply -f kube-manifests/
+       Kiểm tra:
+            kubectl get pod,svc,deploy
+            kubectl get nodes -o wide
+
+    3/ Thực hiện HPA:
+        Khi CPU < 50% thì sẽ scale down, CPU >=50% thì scale up
+            kubectl autoscale deployment <deployment-name> --cpu-percent=50 --min=1 --max=10
+            kubectl autoscale deployment hpa-demo-deployment --cpu-percent=50 --min=1 --max=10
+        Kiểm tra HPA deployment:
+            kubectl describe hpa/hpa-demo-deployment    (describe 1 HPA cụ thể)
+            kubectl get horizontalpodautoscaler.autoscaling/hpa-demo-deployment     (list HPA)
+
+    4/ Kiểm tra bằng thực nghiệm tạo load cho HPA:
+        kubectl run --generator=run-pod/v1 apache-bench -i --tty --rm --image=httpd -- ab -n 500000 -c 1000 http://hpa-demo-service-nginx.default.svc.cluster.local/
+                    (Thực hiện 500000 requests, 1000 cookies)
+-----------------------------------------------------------------------
+Có thể Scale thông qua file.yaml và chỉ định các thông số: 
+=> Đã có: ok "D:\KYF\Terraform_EKS\KYF_terraform\52-EKS-Horizontal-Pod-Autoscaler\03-hpa-demo-yaml\02-service.yaml"
+
+-----------------------------------------------------------------------
+scaling cooldown time default: 5'. Tức 5 phút sau khi scale up thành công. Nếu vừa scale up xong mà vẫn phải scale up tiếp thì vẫn ok, ko liên quan tới cooldown time
+
+Scale pod with volume như EBS thì ntn? Có gặp thực tế?

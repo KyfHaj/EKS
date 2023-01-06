@@ -1,0 +1,6 @@
+Nó scale tài nguyên mà Pod lấy của node
+
+Nếu có 2 pod trở lên thì nhiều khi scale theo kiểu VPA sẽ làm 1 pod re-launch khi scaling để lấy tài nguyên nhiều hơn
+Nếu chỉ có 1 pod thì sẽ ko re-launch khi scaling
+
+Hiếm trường hợp dùng. (Theo tác giả)

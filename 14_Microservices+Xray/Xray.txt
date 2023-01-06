@@ -1,0 +1,46 @@
+X-ray giúp phân tích, debug app
+    Sẽ thấy được các request đi vào:
+        Loại gì, từ ip nào, thời gian đáp ứng,...
+
+Sử dụng X-ray cho eks thông qua Daemonset. Phải cài X-ray agent trên Daemonset
+
+Tích hợp X-Ray vào eks:
+    - Tạo Permission sử dụng AWS cho X-Ray:
+        eksctl create iamserviceaccount \
+            --name xray-daemon \
+            --namespace default \
+            --cluster eksdemo1 \
+            --attach-policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess \
+            --approve \
+            --override-existing-serviceaccounts
+    - Kiểm tra:
+        eksctl  get iamserviceaccount --cluster eksdemo1
+        kubectl get sa
+        kubectl describe sa xray-daemon
+
+    - Trong file "xray-k8s-daemonset.yml"
+        - Tạo 1 service-account có quyền -> AWS X-ray:
+            eks.amazonaws.com/role-arn: arn:aws:iam::180789647333:role/eksctl-eksdemo1-addon-iamserviceaccount-defa-Role1-VR2R60B6MMDV
+        - Tạo Daemonset sử dụng service-account trên:
+            spec:
+                  serviceAccountName: xray-daemon
+        - Tạo 1 configmap để config cho container x-ray ở daemonset
+        - Tạo xray-service:
+            clusterIP: None - Sẽ lấy ip của pod
+
+
+---------------------------------------------------------
+Hiểu X-ray Daemonset có những container đặt trên từng worker-node như là agent. Sẽ lấy thông số của pod gửi lên AWS-Xray
+Service của X-Ray (ClusterIP: None) mở port 2000 cho UDP,TCP
+Thông thường với Daemonset, chỉ đinh ClusterIP: None (headless Services)
+
+Trong code-app của "usermgmt-microservice" và "v1-notification-microservice" sẽ gửi gì đó đến "xray-service.default:2000" ?
+"LOG_ERROR" là gì?
+Tại sao trong user_deployment.yaml lại phải thêm env:
+                - name: AWS_XRAY_TRACING_NAME
+                  value: "User-Management-Microservice"
+                - name: AWS_XRAY_DAEMON_ADDRESS
+                  value: "xray-service.default:2000"
+                - name: AWS_XRAY_CONTEXT_MISSING
+                  value: "LOG_ERROR"
+       trong khi trong app ko thấy các biến env: AWS_XRAY_TRACING_NAME, AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING

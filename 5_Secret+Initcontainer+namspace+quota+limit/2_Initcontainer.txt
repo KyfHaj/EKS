@@ -1,0 +1,31 @@
+Để đảm bảo mysql có trước. Để khi truy vấn thì ko lỗi phải khởi động lại pod
+initcontainer fail thì sẽ ko chạy container tiếp theo(cùng Pod) mà sẽ chạy lại toàn Pod
+
+Chú ý: Nhưng nếu Pod này có restartPolicy of Never thì initContainer sẽ ko restart lại
+Thêm initContainers vào spec, trước containers
+ initContainers:
+        - name: init-db
+          image: busybox:1.31
+          command: ['sh', '-c', 'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z mysql 3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";']
+
+- command: ['sh', '-c',
+'echo -e "Checking for the availability of MySQL Server deployment";
+while ! nc -z mysql 3306; do sleep 1; printf "-"; done;
+    # mysql là service. Nếu "nc -z mysql 3306" ko thành công thì "do sleep 1", printf "-", (ngủ 1s rồi in ra "-"), Vòng lặp sẽ lặp lại
+    # done: Kết thúc while (cấu trúc while-done)
+    # Khi ko thực hiện xong command trên thì exitcode ≠ 0
+    # Cho đến khi nào zero exit code của initcontainer thì các container sau đó mới chạy
+echo -e "  >> MySQL DB Server has started";']
+
+Dùng lệnh "kubectl get pods -w" để kiểm tra
+
+?? Nhưng đó là đảm bảo service mysql, còn ta cần sẽ là pod mysql chạy xong?
+Vậy phải cần health check mysql hoặc call API đến mysql-service và nhận 1 response. Sau đó xác nhận response này để đảm bảo pod mysql đã chạy
+** Chính vì trong trong file "05-mysql-clusterip-service.yml", ta có "clusterIP: None" nghĩa là service ko có IP cho đến khi có pod-mysql chạy
+service-sql sẽ dùng IP của pod-sql. Vì vậy sẽ đảm bảo pod-sql chạy xong thì initContainers mới hoàn thành dù initContainers check bằng service-sql
+Vì service-sql chỉ có thể truy cập được khi pod-sql chạy
+
+Xem tạo Pod
+- kubectl get pod --all-namespaces -w
+- kubectl get pod -n dev3 -w
+

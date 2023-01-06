@@ -1,0 +1,7 @@
+Tạo SES:
+    Vào SMTP Setting
+
+Chỉ có thể gửi mail đến những email đã được verify bởi AWS (chế độ SandBox mặc định).
+Vậy trong thực tế cần làm gì để SES có thể gửi email cho khách hàng?
+
+Để update image thì edit chứ ko apply nhé! Edit mới rollout undo được

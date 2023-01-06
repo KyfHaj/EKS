@@ -1,0 +1,65 @@
+EKS sẽ scale số lượng node nếu pod fail khi đang schedule
+    hoặc node hiện tại ko đủ resource đáp ứng request của pod
+
+    Phải đảm bảo --asg-access khi tạo node-group. Khi đó:
+        Nó sẽ kích hoạt IAM policy. Xem role "eksctl-eksdemo1-nodegroup-XXXXXX":
+         Sẽ có thêm policy "eksctl-eksdemo1-nodegroup-eksdemo1-ng-private1-PolicyAutoScaling"
+
+Triển khai:
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+    kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false"
+        Theo links: "https://faun.pub/how-to-make-sure-kubernetes-autoscaler-not-deleting-the-nodes-which-run-a-specific-pod-8df3f2c28c46"
+        cluster-autoscale sẽ bỏ qua bất kì pod hoặc deployment nào có:
+            metadata:
+                annotations:
+                    "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+    Chỉnh sửa:
+        kubectl -n kube-system edit deployment.apps/cluster-autoscaler
+        1/    # Before Change
+                    - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/<YOUR CLUSTER NAME>
+
+            # After Change
+                    - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/eksdemo1
+        2/  Thêm vào 2 th
+             --balance-similar-node-groups
+             --skip-nodes-with-system-pods=false
+        3/  Update version cluster-autoscaler cho tương thích với eks-cluster version:
+                Tìm eks-cluster version trong aws eks. Giả sử là 1.16
+                Vào link: "https://github.com/kubernetes/autoscaler/releases" search: "Cluster Autoscaler 1.16" và giả sử chọn 1.16.5
+                Sau đó update:
+                    kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:v1.16.5
+
+        Kiểm tra:
+            kubectl -n kube-system get deployment.apps/cluster-autoscaler -o yaml. Sẽ thấy:
+                spec:
+                  containers:
+                  - command:
+                    - ./cluster-autoscaler
+                    - --v=4
+                    - --stderrthreshold=info
+                    - --cloud-provider=aws
+                    - --skip-nodes-with-local-storage=false
+                    - --expander=least-waste
+                    - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/eksdemo1
+                    - --balance-similar-node-groups
+                    - --skip-nodes-with-system-pods=false
+                    image: us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:v1.16.5
+        Xem logs:
+            kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler   (xem logs)
+Test:
+    Scale out:
+        Triển khai 1 app:
+            kubectl apply -f kube-manifests/
+        Thiết lập replicas=30 cho pods:
+            kubectl scale --replicas=30 deploy ca-demo-deployment
+        Xem logs và kiểm tra sẽ thấy pod, node đang tạo ra:
+            kubectl get pod
+            kubectl get node
+        Giả sử tăng lên 50 pods thì các pod mới sẽ : pending state vì cluster ko thể scale vì  --nodes-max=4
+
+    Scale in:
+        Thiết lập replicas=1 cho pods:
+            kubectl scale --replicas=1 deploy ca-demo-deployment
+        Kiểm tra node:
+            kubectl get nodes -o wide
+                Sẽ thấy scale-down

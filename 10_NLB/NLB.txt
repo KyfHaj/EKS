@@ -1,0 +1,2 @@
+Network Load Balancer ko hỗ trợ multi-namespaces
+Code trong chương tác động đến service,ko phải tạo 1 ingress. Nó tạo 1 NLB giống chương 7_Classis_Balancer(Network_Load_Balancer).

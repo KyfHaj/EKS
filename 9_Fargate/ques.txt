@@ -1,0 +1,4 @@
+**Tại sao ? "alb.ingress.kubernetes.io/target-type: ip"
+mà trong service lại là type: nodeport?
+
+**Làm test với Fargate mà service là Cluster-IP. Theo lời nó thì nodeport ko có ý nghĩa gì

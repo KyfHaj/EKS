@@ -1,0 +1,11 @@
+Nhìn hình để hiểu 3 namespaces:
+    ns-app1
+    fp-app2
+    fp-ums
+
+Tạo Fargateprofile cho 2 namespaces: fp-app2, fp-ums
+Như vậy với 2 namespaces này, ta sẽ dùng hạ tầng fargate cho nó:
+    eksctl create fargateprofile -f 01-fargate-profiles.yml
+Kiểm tra:
+    eksctl get fargateprofile --cluster eksdemo1
+    eksctl get fargateprofile --cluster eksdemo1 -o yaml

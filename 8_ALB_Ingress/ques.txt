@@ -1,0 +1,43 @@
+- defaultBackend và rules có chung 1 file đc ko?  -- Phải test thử
+Trả lời:
+    Hoàn toàn Ok và có code sẵn
+
+- Có mối quan hệ ràng buộc giữa Trafic mode của controller và service-type của pod?
+Trả lời:
+    service must be of type "NodePort" or "LoadBalancer" to use instance mode
+https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/guide/ingress/annotations/
+
+- Service chọn LoadBalancer thì loại oadBalancer đó là gì? Classics Load BaLancer đã bị xóa r mà?
+Trả lời:
+    Vẫn là Classic
+
+- *Service lại là Node port? ko phải là Load Balancer và mode ingress: Instance?
+
+- *Ko cần chỉ định dòng này vẫn chạy??
+       "alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:180789647333:certificate/d86de939-8ffd-410f-adce-0ce1f5be6e0d"
+       Nếu ok nghĩa là chỉ cần chỉ định:
+                external-dns.alpha.kubernetes.io/hostname: default102.stacksimplify.com     hoặc:
+                host: app102.stacksimplify.com      hoặc:
+                host: app202.stacksimplify.com
+       Có thể đơn giản hơn
+          tls:
+          - hosts:
+            - "*.stacksimplify.com"
+          rules:
+            - http:
+                paths:
+                  - path: /app1
+                  ...
+            - http:
+                paths:
+                  - path: /app2
+                    pathType: Prefix
+                    backend:
+
+
+- *Nếu đặt alb.ingress.kubernetes.io/group.order: '30' -> '1' ở file "03-App3-Ingress-default-backend.yml"
+thì sẽ auto ra service: app3-nginx-nodeport-service ???
+
+- *ALB-Ingress mode IP > Instances?? (có luôn tốt hơn ko?)
+- *****Sticky Session cụ thể bài toán ntn?
+

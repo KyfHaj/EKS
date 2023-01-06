@@ -1,0 +1,18 @@
+Thực chất là Deploy thêm 1 thèn nữa chỉ chỉnh lại:
+    spec:
+        ...
+        image: stacksimplify/kube-notifications-microservice:4.0.0-AWS-XRay
+    env:
+        ...
+        name: AWS_XRAY_TRACING_NAME
+        value: "V2-Notification-Microservice"
+
+Service sẽ phân phối 1 phần traffic đến từng 2 loại Pod
+
+
+----------------------------------------------------------------
+Bình thường nếu tỉ lệ replicas v2/v1=1/3 thì tỉ lệ traffic sẽ là v2:25%, v1:75%
+                               v2/v1=2/2 thì tỉ lệ traffic sẽ là v2:50%, v1:50%
+     Tuy nhiên có thể sử dụng AWS App Mesh để đạt được tỉ lệ traffic bất kì với bất kì tỉ lệ replicas nào. Ví dụ:
+         traffic: v2:50%, v1:50% trong khi tỉ lệ replicas 1/3
+     Bằng cách điều hướng traffic AWS App Mesh

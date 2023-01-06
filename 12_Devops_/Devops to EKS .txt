@@ -1,0 +1,88 @@
+Devops to EKS sử dụng CodeCommit, CodeBuild, CodePipeLine để CICD đến EKS:
+    Tạo CodeCommit Repository trên Console
+    Sử dụng HTTPS Git credentials for AWS CodeCommit ở IAM để cấp quyền cho git clone (như github)
+        User Name
+        Password
+    Git CLone source-code về:
+        git clone https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/eks-devops-nginx
+    Sau đó copy and push file devops/ -> eks-devops-nginx (source CodeCommit)
+        git add .
+        git commit -m "ok"
+    Kiểm tra source trên CodeCommit
+
+    Tạo IAM Role cho CodeBuild tương tác với EKS:
+        export ACCOUNT_ID=905159657258
+        TRUST="{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"AWS\": \"arn:aws:iam::${ACCOUNT_ID}:root\" }, \"Action\": \"sts:AssumeRole\" } ] }"
+        echo $TRUST
+        aws iam create-role --role-name EksCodeBuildKubectlRole --assume-role-policy-document "$TRUST" --output text --query 'Role.Arn'
+        echo '{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": "eks:Describe*", "Resource": "*" } ] }' > /tmp/iam-eks-describe-policy
+        aws iam put-role-policy --role-name EksCodeBuildKubectlRole --policy-name eks-describe --policy-document file:///tmp/iam-eks-describe-policy
+    Kiểm tra bằng console IAM Role:
+        Xem đã có "EksCodeBuildKubectlRole" kèm "eks-describe" policy (Đây là quyền tương tác vs tất cả EKS)
+
+    Update EKS Cluster aws-auth ConfigMap với Role trên để kubectl ở CodeBuild (stage của CodePipeLine) sẽ tương tác EKS nhờ IAM role:
+        Kiểm tra aws-auth configmap đã có sẵn:
+            kubectl get configmap aws-auth -o yaml -n kube-system
+        export ACCOUNT_ID=905159657258
+        ROLE="    - rolearn: arn:aws:iam::$ACCOUNT_ID:role/EksCodeBuildKubectlRole\n      username: build\n      groups:\n        - system:masters"
+        kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapRoles: \|/{print;print \"$ROLE\";next}1" > /tmp/aws-auth-patch.yml
+        kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
+    Kiểm tra:
+        kubectl get configmap aws-auth -o yaml -n kube-system
+
+    Tạo Pipeline   (video 154) - (Tạo codepipeline.txt)
+
+    Codebuild sẽ fail vì:
+        codebuild_role sẽ phải được cấp quyền -> ECR
+            Vào IAM,  đính kèm policy: AmazonEC2ContainerRegistryFullAccess cho role: "codebuild-eks-devops-pipe-service-role"
+        CodeBuild ko có quyền thực thi updates trên EKS Cluster
+            Vào IAM, tạo policy:
+                Chọn STS -> STS
+                Actions level: under Write - Chọn AssumeRole
+                Resources: Specific
+                    Add ARN
+                    Specify ARN for Role: arn:aws:iam::905159657258:role/EksCodeBuildKubectlRole
+                    Click Add
+                Chọn Review Policy
+                Name: eks-codebuild-sts-assume-role
+                Description: CodeBuild to interact with EKS cluster to perform changes
+                chọn Create Policy
+
+    Sau khi build thành công. Sẽ thấy 1 artifact trong S3
+
+    Test thêm cho CICD bằng việc sửa code, và commit:
+        1/ index.html "V1"->"V1"
+        2/ external-dns.alpha.kubernetes.io/hostname: kyf.haxuan.link, huyen.haxuan.link, kyf26.haxuan.link
+    Ta sẽ thấy commit -> build image ở ECR -> update EKS cluster
+
+Clean up:
+    Xóa All kubernetes Objects in EKS Cluster
+        kubectl delete -f kube-manifests/
+    Xóa Pipeline
+    Xóa CodeBuild Project
+    Xóa CodeCommit Repository
+    Xóa Roles and Policies created
+        Roles:
+            EksCodeBuildKubectlRole
+            codebuild-eks-devops-pipe-service-role
+            cwe-role-ap-northeast-1-CodeBuildEKS
+            cwe-role-ap-northeast-1-eks-devops-pipe
+        Policy:
+            STS...
+
+Env cho CodeBuild:
+    REPOSITORY_URI = 905159657258.dkr.ecr.ap-northeast-1.amazonaws.com/aws-ecr-kubenginx
+    EKS_KUBECTL_ROLE_ARN = arn:aws:iam::905159657258:role/EksCodeBuildKubectlRole
+    EKS_CLUSTER_NAME = eksdemo1
+
+-------------------------------------------------------------------------------------------------------------
+Tham khảo link (buildspec.yaml):https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html
+
+Hiểu:
+    "EksCodeBuildKubectlRole" được tạo ra từ line 13-31
+    Tuy nhiên nó ko phải là role của code build
+    Role của code build được tạo ra khi ta tạo ra codebuild trong quá trình tạo ra codepipeline thường có tên là: "codebuild-eks-devops-pipe-service-role"
+    Phải tạo ra 1 policy (STS) để lấy quyền role của "EksCodeBuildKubectlRole"
+    Sau đó đính kèm policy ấy vào Role của codebuild ("codebuild-eks-devops-pipe-service-role")
+    Như vậy, "codebuild-eks-devops-pipe-service-role" sẽ có thêm quyền của "EksCodeBuildKubectlRole"
+        mà "EksCodeBuildKubectlRole" đã được configmap-maprules ở eks

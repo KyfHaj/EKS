@@ -1,0 +1,15 @@
+IP mode tức request sẽ đi từ ALB -> Service -> IP của Pod
+    khác với Instance mode (default), request sẽ đi từ ALB -> Service -> NodePort -> Pod
+IP mode sử dụng khi
+    Trường hợp cần Sticky Session với K8s nền tảng là EC2 worker node
+    Trường hợp Fargate
+
+Thêm vào annotations (ingress.yaml):
+    alb.ingress.kubernetes.io/target-type: ip
+Sửa file: (Service.yaml)
+    type: NodePort -> type: ClusterIP
+
+Kiểm tra:
+    kubectl get pod -o wide -> sẽ thấy IP của pod
+    kubectl get svc -> IP của service
+    Khi xem target-group của LoadBalancer sẽ thấy IP của Pod được đăng ký

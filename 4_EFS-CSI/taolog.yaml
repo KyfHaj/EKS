@@ -1,0 +1,58 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efs-pv
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-086136caab03ebe8b
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 5Gi
+# Ko cần Service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taolog
+  template:
+    metadata:
+      labels:
+        app: taolog
+    spec:
+      containers:
+        - name: taolog
+          image: kyf26/test_mount_volume:v1
+          volumeMounts:
+            - name: efs-vol
+              mountPath: /app/log
+      volumes:
+        - name: efs-vol
+          persistentVolumeClaim:
+            claimName: efs-pvc

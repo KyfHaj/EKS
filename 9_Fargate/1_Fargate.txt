@@ -1,0 +1,40 @@
+Fargate là kiểu serverless
+Triển khai lên EKS cần Fargate-Controller, bao gồm 1 K8s scheduler sẽ chạy song song với scheduler mặc định
+
+Với EC2 managed Node thì có thể tạo public và private   (node group quản lý node, quản lý pod)
+    Fargate chỉ hỗ trợ private                          (fargate profile quản lý pod)
+            trả phí cho pod, ko quan tâm đến host (EC2)
+            chỉ hỗ trợ ALB ingress, ko NLB hoặc Classic LoadBalancer
+            Tỉ lệ 1:1 giữa Pod:Fargate host
+                1 pod <=> 1 Fargate host (Fargate node)
+                10 pod <=> 10 Fargate host
+    Khi deploy 1 deployment (có replica), sẽ tự động tạo ra Fargate node, trên các Fargatenode này, sẽ đặt các pod trong deployment
+    Số lượng Fargate node tạo ra dựa trên số lượng pod (tỉ lệ 1:1), vì vậy ko thể có Daemonset
+
+    Đã có 1 private-networking
+    Tạo Fargate profile với 1 namespace, đây là namespace chứa fargate profile (ngang bằng với node-group):
+eksctl create fargateprofile --cluster eksdemo1 \
+                             --name fp-demo \
+                             --namespace fargate-namespace
+    Với Fargate thì bắt buộc phải:
+              resources:
+                requests:
+                  memory: "128Mi"
+                  cpu: "500m"
+                limits:
+                  memory: "500Mi"
+                  cpu: "1000m"
+
+Trong môi trường hỗn hợp (có workernode + fargate, khi delete fargate thì các pod sẽ tự động được schedule qua các worker node)
+
+Tham khảo:
+https://sysdig.com/learn-cloud-native/kubernetes-security/aws-eks-with-and-without-fargate-understanding-the-differences/
+---------------------------------------------------------------------------------------------------------------------------
+Khi test thực tế thì chúng phải giống nhau request=limits:
+  resources:
+                requests:
+                  memory: "128Mi"
+                  cpu: "500m"
+                limits:
+                  memory: "128Mi"
+                  cpu: "500m"

@@ -1,0 +1,25 @@
+ALB-Ingress hỗ trợ rất nhiều features:
+- Host, Path
+- Headers, Query parrameter, IP source address
+- Redirect request đến url khác
+- Hỗ trợ Lambda, ECS
+- Authen, monitoring
+- Target ngoài vpc của ALB
+
+annotations: "alb.ingress.kubernetes.io" trong Ingress-resources sẽ kích hoạt ALB Ingress-controllers tạo 1 ALB (aws)
+
+Có 2 mode:
+    - Instance (workernode là target của ALB, sau đó sẽ proxy đến pod)
+            Đây là default mode. Có thể chỉ định bằng: alb.ingress.kubernetes.io/target-type:instance
+    - IP (Pod là target của ALB, ALB trỏ thẳng tới Pod)
+            Có thể chỉ định bằng: alb.ingress.kubernetes.io/target-type:ip
+            Với Fargate thì đây là điều bắt buộc
+
+ALB-Ingress-controller được viết lại là:
+AWS Load Balancer Controller (có nhiều cái ok hơn)
+- Cho ALB và NLB
+    Ingress -> ALB
+    Service -> NLB
+
+AWS Load Balancer Controller sẽ lắng nghe events từ k8s-api-server. Bất cứ khi nào có Ingress, nó sẽ run
+AWS Load Balancer Controller sẽ sử dụng service-account (có cả quyền với K8s (cluster-role) và quyền với AWS (iam-role))

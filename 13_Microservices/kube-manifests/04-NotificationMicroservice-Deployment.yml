@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-microservice
+  labels:
+    app: notification-restapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-restapp
+  template:
+    metadata:
+      labels:
+        app: notification-restapp
+    spec:
+      containers:
+        - name: notification-service
+          image: stacksimplify/kube-notifications-microservice:1.0.0
+          ports:
+            - containerPort: 8096
+          imagePullPolicy: Always     # Lấy image từ Docker-Hub
+          env:
+            - name: AWS_MAIL_SERVER_HOST              #Tên của externa-service
+              value: "smtp-service"
+            - name: AWS_MAIL_SERVER_USERNAME
+              value: "AKIA5FP5YI4VPZPZUDXW"
+            - name: AWS_MAIL_SERVER_PASSWORD
+              value: "BJ8EItn131vjb+GpbgOwNThWZkucZJbtbaZIuOo68UFL"
+            - name: AWS_MAIL_SERVER_FROM_ADDRESS      #Đây là email của mình và SMTP sẽ gửi mail từ cái này đến email của khách hàng
+              value: "tuliver2611@gmail.com"

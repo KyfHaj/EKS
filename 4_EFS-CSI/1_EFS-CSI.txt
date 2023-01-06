@@ -1,0 +1,22 @@
+- Tạo policy và đính kèm:
+curl -o iam-policy-example.json https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/master/docs/iam-policy-example.json
+
+aws iam create-policy \
+    --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
+    --policy-document file://iam-policy-example.json
+
+eksctl create iamserviceaccount \
+    --cluster eksdemo1 \
+    --namespace kube-system \
+    --name efs-csi-controller-sa \
+    --attach-policy-arn arn:aws:iam::905159657258:policy/AmazonEKS_EFS_CSI_Driver_Policy \
+    --approve \
+    --region ap-northeast-1
+
+
+- Cài EFS-CSI-driver:
+kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-1.3"
+- Kiểm tra:
+kubectl get pod --all-namespaces
+- Thêm NFS từ anywhere cho NodeGroup sg
+- Tạo EFS sau đó mount thủ công bằng console (mount vào NodeGroup security-group nhé)

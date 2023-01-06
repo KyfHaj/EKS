@@ -1,0 +1,3 @@
+https://platform9.com/kb/kubernetes/how-to-avoid-scheduling-more-that-one-replicas-of-a-pod-on-same
+Giải quyết vấn đề bằng: Pod anti-affinity tức là sẽ ko để các pod này gần nhau (ko đặt trên cùng node)
+https://viblo.asia/p/kubernetes-series-bai-18-advanced-scheduling-node-affinity-and-pod-affinity-gAm5y7jqZdb

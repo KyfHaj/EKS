@@ -1,0 +1,10 @@
+Ingress class sẽ dùng để xác định loại Ingress-controller nào sẽ dùng cho Ingress-resource
+- "ingressClassName" trong file "ingress-resource.yaml" sẽ quyết định
+- Sẽ cực kỳ hữu dụng nếu chúng ta có nhiều Ingress-controller
+- Nếu ko khai báo "ingressClassName" trong ingress-resource thì sẽ sử dụng AWS Load Balancer Controller
+  Nếu khai báo cụ thể thì sẽ sử dụng ingress-controller đó
+
+Apply + Check:
+- kubectl apply -f ingress_class.yaml
+- kubectl get ingressclass
+- kubectl describe ingressclass my-aws-ingress-class

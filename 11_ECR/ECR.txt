@@ -1,0 +1,30 @@
+Tạo 1 ECR-private:
+    aws ecr create-repository --repository-name aws-ecr-kubenginx --region ap-northeast-1
+
+Tạo 1 docker image:
+    docker build -t 905159657258.dkr.ecr.ap-northeast-1.amazonaws.com/aws-ecr-kubenginx:v1 .
+Chạy thử ở local:
+    docker run --name aws-ecr-kubenginx -p 80:80 --rm -d 905159657258.dkr.ecr.ap-northeast-1.amazonaws.com/aws-ecr-kubenginx:v1
+Push -> ECR
+    Cài aws-cli+quyền->ECR
+    Login vào ECR (mở xem View push command):
+        aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 905159657258.dkr.ecr.ap-northeast-1.amazonaws.com
+    push image -> ECR:
+        docker push 905159657258.dkr.ecr.ap-northeast-1.amazonaws.com/aws-ecr-kubenginx:v1
+
+Kiểm tra permission của nodegroup
+    Policy with name AmazonEC2ContainerRegistryReadOnly, AmazonEC2ContainerRegistryPowerUser
+
+Update image trong EKS (fiel.yaml) -> image của ECR:
+      image: 905159657258.dkr.ecr.ap-northeast-1.amazonaws.com/aws-ecr-kubenginx:v1
+
+
+Deploy + Test connect -> Ingress
+-------------------------------------------------------------------------------------
+Dọn dẹp:
+
+
+
+
+
+
