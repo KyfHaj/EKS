@@ -6,4 +6,5 @@ Trong "12_Devops_" sẽ tạo 1 pipeline để auto-update file.yaml configure c
 ![image](https://user-images.githubusercontent.com/36032208/211161649-5e74c263-f68f-4bee-aac5-0576762f1984.png)
 Các services EKS sử dụng:
 ![image](https://user-images.githubusercontent.com/36032208/211161663-61457b37-c3b7-482e-8d37-62a023530e50.png)
-Và 1 phần scale cho EKS như HPA, VPA, Eks-cluster
+
+Và 1 phần scale cho EKS như HPA, VPA, Eks-cluster autoscale
